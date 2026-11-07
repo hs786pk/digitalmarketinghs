@@ -1,0 +1,58 @@
+﻿@page "/admin"
+@attribute [Authorize(Policy = "RequireAdminRole")]
+@layout Components.Layout.AdminLayout
+@using EarnPlatform.Factories.Interfaces
+@using EarnPlatform.Models
+@using EarnPlatform.Repositories.Interfaces
+@inject IUserAccountRepository UserAccountRepository
+@inject IPaymentApprovalRepository PaymentApprovalRepository
+@inject IWithdrawalRequestRepository WithdrawalRequestRepository
+@inject IPackageRepository PackageRepository
+@inject IWorkTaskCompletionRepository CompletionRepository
+@inject IDashboardCardFactory DashboardCardFactory
+@inject IWalletRepository WalletRepository
+
+<PageTitle>Admin Dashboard</PageTitle>
+
+@if (_cards == null)
+{
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+else
+{
+    <h4 class="fw-bold mb-3">Dashboard</h4>
+    <div class="row g-3">
+        @foreach (var card in _cards)
+        {
+            <div class="col-6 col-md-3">
+                <EarnPlatform.Components.Shared.DashboardCard Card="@card" />
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<DashboardCardViewModel>? _cards;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var allUsers = await UserAccountRepository.GetAllAsync();
+        var pendingApprovals = await PaymentApprovalRepository.GetPendingAsync();
+        var pendingWithdrawals = await WithdrawalRequestRepository.GetPendingAsync();
+        var allWithdrawals = await WithdrawalRequestRepository.FindAsync(w => w.Status == WithdrawalStatus.Approved);
+        var activePackages = await PackageRepository.GetActivePackagesAsync();
+        var todaysCompletions = await CompletionRepository.CountAllTodaysCompletionsAsync();
+
+        var stats = new AdminDashboardStats(
+            TotalUsers: allUsers.Count,
+            PendingAccountApprovals: pendingApprovals.Count,
+            ApprovedUsers: allUsers.Count(u => u.AccountStatus == AccountStatus.Active),
+            PendingWithdrawals: pendingWithdrawals.Count,
+            TotalWithdrawals: allWithdrawals.Sum(w => w.Amount),
+TotalWalletBalance: await WalletRepository.GetTotalBalanceAsync(), ActivePackages: activePackages.Count,
+            TodaysCompletions: todaysCompletions);
+
+        // Factory Pattern: admin dashboard cards are assembled by IDashboardCardFactory
+        _cards = DashboardCardFactory.CreateAdminDashboardCards(stats);
+    }
+}

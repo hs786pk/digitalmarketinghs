@@ -1,0 +1,61 @@
+﻿@* Drop this at the top of any public page to bounce authenticated users
+   straight to their dashboard. Renders nothing itself — anonymous visitors
+   just fall through to whatever markup the host page renders next. *@
+@using System.Security.Claims
+@using EarnPlatform.Models
+@using EarnPlatform.Repositories.Interfaces
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IUserAccountRepository UserAccountRepository
+@inject NavigationManager NavigationManager
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // This only runs safely on a fresh GET, before any sign-in/sign-out
+        // has happened for the current request — same assumption Login.razor
+        // relies on for AuthStateProvider being trustworthy here.
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated != true)
+        {
+            return; // anonymous visitor -> host page renders its public content
+        }
+
+        var landingPage = await ResolveLandingPageAsync(user);
+        NavigationManager.NavigateTo(landingPage, forceLoad: true);
+    }
+
+    private async Task<string> ResolveLandingPageAsync(ClaimsPrincipal user)
+    {
+        if (user.IsInRole("Admin"))
+        {
+            return "/admin";
+        }
+
+        var applicationUserId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userAccount = applicationUserId != null
+            ? await UserAccountRepository.GetByApplicationUserIdAsync(applicationUserId)
+            : null;
+
+        if (userAccount == null)
+        {
+            return "/user";
+        }
+
+        if (userAccount.AccountStatus == AccountStatus.Active)
+        {
+            return "/user";
+        }
+
+        // Brand-new user, or a rejected user who needs to pick again — no
+        // payment is currently under review, so send them back into the
+        // onboarding flow instead of the "awaiting review" dead-end page.
+        if (userAccount.AccountStatus == AccountStatus.PendingApproval && userAccount.SelectedPackageId == null)
+        {
+            return "/packages";
+        }
+
+        return "/user/pending-approval";
+    }
+}

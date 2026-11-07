@@ -1,0 +1,29 @@
+@page "/user/salary"
+@attribute [Authorize(Policy = "RequireActiveUser")]
+@layout Components.Layout.UserLayout
+@using EarnPlatform.Services.Interfaces
+@inject ISettingsService SettingsService
+
+<PageTitle>Salary</PageTitle>
+
+@if (_settings == null)
+{
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+else
+{
+    <h4 class="fw-bold mb-3">@_settings.Title</h4>
+
+    <div class="card p-3">
+        <p class="text-muted salary-description">@_settings.Description</p>
+    </div>
+}
+
+@code {
+    private Models.SalarySettings? _settings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _settings = await SettingsService.GetSalarySettingsAsync();
+    }
+}

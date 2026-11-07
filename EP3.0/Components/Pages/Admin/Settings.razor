@@ -1,0 +1,202 @@
+﻿@page "/admin/settings"
+@attribute [Authorize(Policy = "RequireAdminRole")]
+@layout Components.Layout.AdminLayout
+@using EarnPlatform.Services.Interfaces
+@using Microsoft.AspNetCore.Components.Forms
+@inject ISettingsService SettingsService
+@inject IFileUploadService FileUploadService
+
+<PageTitle>Settings</PageTitle>
+
+<h4 class="fw-bold mb-3">Admin Settings</h4>
+
+@if (_toast != null)
+{
+    <div class="alert alert-success rounded">@_toast</div>
+}
+
+@if (_appSettings == null || _contactSettings == null || _channelSettings == null || _fbrSettings == null || _salarySettings == null)
+{
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+else
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3">Payment Account</h6>
+            <div class="mb-2">
+                <label class="form-label small">Account Name</label>
+                <input class="form-control form-control-sm" @bind="_appSettings.PaymentAccountName" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label small">Account Number</label>
+                <input class="form-control form-control-sm" @bind="_appSettings.PaymentAccountNumber" />
+            </div>
+            <button class="btn btn-sm btn-primary" @onclick="SavePaymentAsync">Save</button>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3">Official WhatsApp Channel</h6>
+            <div class="mb-3">
+                <label class="form-label small">Channel Link</label>
+                <input class="form-control form-control-sm" @bind="_channelSettings.WhatsAppChannelLink" />
+            </div>
+            <button class="btn btn-sm btn-primary" @onclick="SaveChannelAsync">Save</button>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3">Contact Us</h6>
+            <div class="mb-2">
+                <label class="form-label small">WhatsApp Name</label>
+                <input class="form-control form-control-sm" @bind="_contactSettings.WhatsAppAccountName" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label small">WhatsApp Number</label>
+                <input class="form-control form-control-sm" @bind="_contactSettings.WhatsAppNumber" />
+            </div>
+            <button class="btn btn-sm btn-primary" @onclick="SaveContactAsync">Save</button>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3">Salary Program Content</h6>
+            <div class="mb-2">
+                <label class="form-label small">Title</label>
+                <input class="form-control form-control-sm" @bind="_salarySettings.Title" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label small">Description</label>
+                <textarea class="form-control form-control-sm" rows="5" @bind="_salarySettings.Description"></textarea>
+            </div>
+            <button class="btn btn-sm btn-primary" @onclick="SaveSalaryAsync">Save</button>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3">FBR Approval Image</h6>
+
+            @if (!string.IsNullOrWhiteSpace(_fbrSettings.ImagePath))
+            {
+                <img src="@_fbrSettings.ImagePath" class="img-fluid rounded mb-2 border fbr-settings-image" alt="Current FBR image" />
+                <div class="mb-2">
+                    <button class="btn btn-sm btn-outline-danger" @onclick="() => _confirmDeleteOpen = true">
+                        <i class="bi bi-trash me-1"></i> Delete Current Image
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="text-muted small mb-2">
+                    <i class="bi bi-image me-1"></i> No FBR image set. Upload one below.
+                </div>
+            }
+
+            <InputFile OnChange="HandleFbrFileSelectedAsync" class="form-control form-control-sm" accept=".jpg,.jpeg,.png,.webp" />
+            @if (_fbrError != null)
+            {
+                <div class="text-danger small mt-1">@_fbrError</div>
+            }
+        </div>
+    </div>
+}
+
+<EarnPlatform.Components.Shared.ConfirmDialog IsOpen="@_confirmDeleteOpen"
+                                              Title="Delete FBR Image"
+                                              Message="This will remove the current FBR approval image. Users will see 'no image set' until you upload a new one."
+                                              ConfirmText="Delete"
+                                              ConfirmButtonClass="btn-danger"
+                                              OnConfirm="HandleDeleteFbrConfirmedAsync"
+                                              OnCancel="() => _confirmDeleteOpen = false" />
+
+@code {
+    private Models.AppSettings? _appSettings;
+    private Models.ContactSettings? _contactSettings;
+    private Models.ChannelSettings? _channelSettings;
+    private Models.FbrSettings? _fbrSettings;
+    private Models.SalarySettings? _salarySettings;
+    private string? _toast;
+    private string? _fbrError;
+    private bool _confirmDeleteOpen;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _appSettings = await SettingsService.GetPaymentSettingsAsync();
+        _contactSettings = await SettingsService.GetContactSettingsAsync();
+        _channelSettings = await SettingsService.GetChannelSettingsAsync();
+        _fbrSettings = await SettingsService.GetFbrSettingsAsync();
+        _salarySettings = await SettingsService.GetSalarySettingsAsync();
+    }
+
+    private async Task SavePaymentAsync()
+    {
+        await SettingsService.UpdatePaymentSettingsAsync(_appSettings!.PaymentAccountName, _appSettings.PaymentAccountNumber);
+        await ShowToastAsync("Payment account updated.");
+    }
+
+    private async Task SaveChannelAsync()
+    {
+        await SettingsService.UpdateChannelSettingsAsync(_channelSettings!.WhatsAppChannelLink);
+        await ShowToastAsync("Channel link updated.");
+    }
+
+    private async Task SaveContactAsync()
+    {
+        await SettingsService.UpdateContactSettingsAsync(_contactSettings!.WhatsAppAccountName, _contactSettings.WhatsAppNumber);
+        await ShowToastAsync("Contact details updated.");
+    }
+
+    private async Task SaveSalaryAsync()
+    {
+        await SettingsService.UpdateSalarySettingsAsync(_salarySettings!.Title, _salarySettings.Description);
+        await ShowToastAsync("Salary page content updated.");
+    }
+
+    private async Task HandleFbrFileSelectedAsync(InputFileChangeEventArgs e)
+    {
+        _fbrError = null;
+        var file = e.File;
+
+        const long maxSize = 5 * 1024 * 1024;
+        if (file.Size > maxSize)
+        {
+            _fbrError = "File must be smaller than 5 MB.";
+            return;
+        }
+
+        await using var stream = file.OpenReadStream(maxSize);
+        var result = await FileUploadService.SaveFbrImageAsync(stream, file.Name, file.Size);
+
+        if (!result.Succeeded)
+        {
+            _fbrError = result.ErrorMessage;
+            return;
+        }
+
+        await SettingsService.UpdateFbrImageAsync(result.RelativePath!);
+        _fbrSettings = await SettingsService.GetFbrSettingsAsync();
+        await ShowToastAsync("FBR image updated.");
+    }
+
+    private async Task HandleDeleteFbrConfirmedAsync()
+    {
+        _confirmDeleteOpen = false;
+        await SettingsService.DeleteFbrImageAsync();
+        _fbrSettings = await SettingsService.GetFbrSettingsAsync();
+        await ShowToastAsync("FBR image deleted.");
+    }
+
+    private async Task ShowToastAsync(string message)
+    {
+        _toast = message;
+        StateHasChanged();
+        await Task.Delay(2500);
+        _toast = null;
+        StateHasChanged();
+    }
+}

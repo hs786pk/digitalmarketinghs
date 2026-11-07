@@ -1,0 +1,28 @@
+﻿@implements IDisposable
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+@code {
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private async void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("earnPlatform.hideNavProgressBar");
+        }
+        catch (JSDisconnectedException)
+        {
+            // Circuit was already torn down (e.g. user navigated away during
+            // logout) — nothing to do, safe to ignore.
+        }
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}

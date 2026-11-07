@@ -1,0 +1,36 @@
+@page "/Error"
+@using System.Diagnostics
+@inject IHostEnvironment HostEnvironment
+
+<PageTitle>Error</PageTitle>
+
+<h1 class="text-danger">Something went wrong</h1>
+<p class="text-muted">An unexpected error occurred while processing your request. Please try again. If the problem continues, contact support.</p>
+
+@if (ShowRequestId)
+{
+    <p class="small text-muted">
+        <strong>Reference:</strong> <code>@RequestId</code>
+    </p>
+}
+
+@if (HostEnvironment.IsDevelopment())
+{
+    <hr />
+    <h3>Development Mode</h3>
+    <p>
+        Swapping to the <strong>Development</strong> environment displays more detailed information about the error.
+        The Development environment must not be enabled for deployed applications.
+    </p>
+}
+
+@code {
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+
+    private string? RequestId { get; set; }
+    private bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+
+    protected override void OnInitialized() =>
+        RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
+}

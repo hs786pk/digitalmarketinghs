@@ -1,0 +1,37 @@
+@page "/user/contact"
+@attribute [Authorize(Policy = "RequireActiveUser")]
+@layout Components.Layout.UserLayout
+@using EarnPlatform.Services.Interfaces
+@inject ISettingsService SettingsService
+
+<PageTitle>Contact Us</PageTitle>
+
+<h4 class="fw-bold mb-3">Contact Us</h4>
+
+@if (_settings == null)
+{
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+else
+{
+    <div class="card p-4 text-center">
+        <i class="bi bi-whatsapp text-success contact-icon"></i>
+        <h5 class="fw-bold mt-2">@_settings.WhatsAppAccountName</h5>
+        <p class="text-muted">@_settings.WhatsAppNumber</p>
+        <a href="https://wa.me/@FormatForWhatsAppLink(_settings.WhatsAppNumber)" target="_blank" class="btn btn-success">
+            <i class="bi bi-whatsapp me-1"></i> Message on WhatsApp
+        </a>
+    </div>
+}
+
+@code {
+    private Models.ContactSettings? _settings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _settings = await SettingsService.GetContactSettingsAsync();
+    }
+
+    private static string FormatForWhatsAppLink(string number) =>
+        new string(number.Where(char.IsDigit).ToArray()); // wa.me links need digits only, no +/spaces
+}

@@ -1,0 +1,36 @@
+@page "/user/fbr"
+@attribute [Authorize(Policy = "RequireActiveUser")]
+@layout Components.Layout.UserLayout
+@using EarnPlatform.Services.Interfaces
+@inject ISettingsService SettingsService
+
+<PageTitle>FBR</PageTitle>
+
+<h4 class="fw-bold mb-3">FBR Approval</h4>
+
+@if (_settings == null)
+{
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+else if (string.IsNullOrWhiteSpace(_settings.ImagePath))
+{
+    <div class="text-center text-muted py-5 card">
+        <i class="bi bi-image fs-2 d-block mb-1"></i>
+        Yet to be Uploaded.
+    </div>
+}
+else
+{
+    <div class="card p-3 text-center">
+        <img src="@_settings.ImagePath" alt="FBR Approval" class="img-fluid rounded fbr-image" />
+    </div>
+}
+
+@code {
+    private Models.FbrSettings? _settings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _settings = await SettingsService.GetFbrSettingsAsync();
+    }
+}

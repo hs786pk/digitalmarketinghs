@@ -1,0 +1,16 @@
+@page "/user/about"
+@attribute [Authorize(Policy = "RequireActiveUser")]
+@layout Components.Layout.UserLayout
+
+<PageTitle>About Us</PageTitle>
+
+<h4 class="fw-bold mb-3">About Us</h4>
+
+<div class="card p-3">
+    <p class="text-muted">
+        EarnPlatform connects everyday users with simple daily tasks and a referral
+        network, offering a transparent way to earn rewards. Our mission is to make
+        digital earning accessible, fair, and easy to manage — whether you're
+        completing tasks or growing your own referral team.
+    </p>
+</div>

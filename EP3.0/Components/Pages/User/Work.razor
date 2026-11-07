@@ -1,0 +1,102 @@
+@page "/user/work"
+@attribute [Authorize(Policy = "RequireActiveUser")]
+@layout Components.Layout.UserLayout
+@using EarnPlatform.Models
+@using EarnPlatform.Services.Interfaces
+@inject ICurrentUserService CurrentUserService
+@inject IWorkTaskService WorkTaskService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+<PageTitle>Work</PageTitle>
+
+@if (_tasks == null)
+{
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+else
+{
+    <h4 class="fw-bold mb-1">Today's Tasks</h4>
+    <p class="text-muted mb-3">Remaining today: <strong>@_remaining</strong> task(s)</p>
+
+    @if (_errorMessage != null)
+    {
+        <div class="alert alert-danger rounded">@_errorMessage</div>
+    }
+
+    <div class="row g-3">
+        @foreach (var task in _tasks)
+        {
+            <div class="col-12 col-md-6">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h6 class="fw-bold">@task.Title</h6>
+                        <p class="text-muted small flex-grow-1">@task.Description</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-success fw-bold">+PKR @task.RewardAmount.ToString("N0")</span>
+                            <button class="btn btn-sm btn-primary" disabled="@(_remaining <= 0 || _busyTaskId == task.Id)"
+                                    @onclick="() => StartTaskAsync(task.Id)">
+                                @if (_busyTaskId == task.Id)
+                                {
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                }
+                                else
+                                {
+                                    <text>Start Task</text>
+                                }
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<WorkTask>? _tasks;
+    private UserAccount? _user;
+    private int _remaining;
+    private int? _busyTaskId;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _user = await CurrentUserService.GetCurrentUserAccountAsync();
+        if (_user == null)
+        {
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        _tasks = await WorkTaskService.GetActiveTasksForUserAsync();
+        _remaining = await WorkTaskService.GetRemainingDailyTasksAsync(_user.Id);
+    }
+
+    private async Task StartTaskAsync(int taskId)
+    {
+        _errorMessage = null;
+        _busyTaskId = taskId;
+
+        try
+        {
+            var task = _tasks!.First(t => t.Id == taskId);
+            var completion = await WorkTaskService.StartTaskAsync(_user!.Id, taskId);
+
+            // Opens in a new tab on desktop, or attempts the YouTube app on mobile.
+            await JS.InvokeVoidAsync("earnPlatform.openAd", task.AdUrl);
+
+            NavigationManager.NavigateTo($"/user/work/view/{completion.Id}");
+        }
+        catch (AppException ex)
+        {
+            _errorMessage = ex.Message;
+            _busyTaskId = null;
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Something went wrong. Please try again.";
+            _busyTaskId = null;
+        }
+    }
+}

@@ -1,0 +1,360 @@
+﻿@page "/"
+@attribute [ExcludeFromInteractiveRouting]
+@layout Components.Layout.PublicLayout
+@using Microsoft.AspNetCore.Components.Endpoints
+
+<PageTitle>Digital-Marketing Group | Online Rewards &amp; Earning Platform in Pakistan</PageTitle>
+
+<HeadContent>
+    <meta name="description"
+          content="Digital-Marketing Group helps users earn rewards through tasks, referrals, wallet rewards and secure withdrawal management." />
+
+    <meta name="robots" content="index, follow" />
+
+    <link rel="canonical" href="https://digital-marketingpk.com/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Digital-Marketing Group | Online Rewards & Earning Platform in Pakistan" />
+    <meta property="og:description"
+          content="Digital-Marketing Group helps users earn rewards through tasks, referrals, wallet rewards and secure withdrawal management." />
+    <meta property="og:url" content="https://digital-marketingpk.com/" />
+    <meta property="og:site_name" content="Digital-Marketing Group" />
+    <meta property="og:image" content="https://digital-marketingpk.com/images/og-image.jpg" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Digital-Marketing Group | Online Rewards & Earning Platform in Pakistan" />
+    <meta name="twitter:description"
+          content="Digital-Marketing Group helps users earn rewards through tasks, referrals, wallet rewards and secure withdrawal management." />
+    <meta name="twitter:image" content="https://digital-marketingpk.com/images/og-image.jpg" />
+
+    <script type="application/ld+json">
+            {
+              "@@context": "https://schema.org",
+              "@@type": "Organization",
+              "name": "Digital-Marketing Group",
+              "url": "https://digital-marketingpk.com/",
+              "logo": "https://digital-marketingpk.com/favicon.png",
+              "description": "Digital-Marketing Group helps users earn rewards through tasks, referrals, wallet rewards and secure withdrawal management."
+            }
+    </script>
+
+    <script type="application/ld+json">
+            {
+              "@@context": "https://schema.org",
+              "@@type": "FAQPage",
+              "mainEntity": [
+                {
+                  "@@type": "Question",
+                  "name": "How do users earn rewards?",
+                  "acceptedAnswer": { "@@type": "Answer", "text": "Users earn rewards by completing available tasks on the platform. Once a completed task is verified, the reward is credited to the user's wallet." }
+                },
+                {
+                  "@@type": "Question",
+                  "name": "How does the referral system work?",
+                  "acceptedAnswer": { "@@type": "Answer", "text": "Every user gets a unique referral code. When someone registers using that code and becomes a successful member, the referring user receives a referral reward according to platform rules." }
+                },
+                {
+                  "@@type": "Question",
+                  "name": "How are rewards added to the wallet?",
+                  "acceptedAnswer": { "@@type": "Answer", "text": "Once a task is approved or a referral is confirmed, the reward is automatically added to the user's wallet balance and recorded in the transaction history." }
+                },
+                {
+                  "@@type": "Question",
+                  "name": "How can users withdraw earnings?",
+                  "acceptedAnswer": { "@@type": "Answer", "text": "Eligible users can submit a withdrawal request from their wallet. Requests are reviewed by the admin team and paid out through supported payment methods such as JazzCash and Easypaisa." }
+                },
+                {
+                  "@@type": "Question",
+                  "name": "What are account levels?",
+                  "acceptedAnswer": { "@@type": "Answer", "text": "Account levels reflect a user's progress on the platform. Successful referrals contribute toward level progression, and higher levels unlock eligibility for additional platform benefits." }
+                },
+                {
+                  "@@type": "Question",
+                  "name": "How do tasks work?",
+                  "acceptedAnswer": { "@@type": "Answer", "text": "Users access available tasks from their dashboard, complete them, and submit them for verification. Approved tasks are credited to the wallet, subject to daily limits." }
+                }
+              ]
+            }
+    </script>
+</HeadContent>
+
+<AuthRedirect />
+
+<!-- ============ HERO ============ -->
+<section class="ph-hero">
+    <div class="container ph-hero-inner">
+        <p class="ph-eyebrow">Digital-Marketing Group</p>
+        <h1 class="ph-hero-title">Earn Through Tasks. Get Rewarded. Grow Your Network.</h1>
+        <p class="ph-hero-desc">
+            Complete available tasks, earn rewards, receive referral bonuses, manage your wallet earnings
+            and request withdrawals — all from one secure platform built for everyday, transparent earning.
+        </p>
+        <div class="ph-hero-actions">
+            <a href="/signup" class="btn btn-public-accent btn-lg">Create Account</a>
+            <a href="/login" class="btn btn-public-ghost btn-lg">Login</a>
+        </div>
+    </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="ph-section">
+    <div class="container">
+        <h2 class="ph-section-title">How It Works</h2>
+        <div class="row g-4 ph-steps">
+            <div class="col-6 col-lg-3">
+                <div class="ph-card ph-step-card">
+                    <span class="ph-step-num">1</span>
+                    <i class="bi bi-person-plus ph-card-icon"></i>
+                    <h3 class="ph-card-title">Create Account</h3>
+                    <p class="ph-card-text">Users register and create their platform account.</p>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="ph-card ph-step-card">
+                    <span class="ph-step-num">2</span>
+                    <i class="bi bi-list-check ph-card-icon"></i>
+                    <h3 class="ph-card-title">Complete Tasks</h3>
+                    <p class="ph-card-text">Users complete available tasks and receive approved rewards.</p>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="ph-card ph-step-card">
+                    <span class="ph-step-num">3</span>
+                    <i class="bi bi-gift ph-card-icon"></i>
+                    <h3 class="ph-card-title">Earn Rewards</h3>
+                    <p class="ph-card-text">Rewards are added to the user's wallet after successful completion.</p>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="ph-card ph-step-card">
+                    <span class="ph-step-num">4</span>
+                    <i class="bi bi-wallet2 ph-card-icon"></i>
+                    <h3 class="ph-card-title">Withdraw Earnings</h3>
+                    <p class="ph-card-text">Eligible users can request withdrawals through supported payment methods.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ REWARD SYSTEM ============ -->
+<section class="ph-section ph-section-alt">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <h2 class="ph-section-title">Reward System</h2>
+                <p class="ph-section-lead">
+                    Every reward on Digital-Marketing Group is transparent and traceable — from task completion
+                    rewards and referral rewards to wallet reward tracking and a full transaction history.
+                </p>
+                <ul class="ph-check-list">
+                    <li><i class="bi bi-check-circle-fill"></i> Task completion rewards</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Referral rewards</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Wallet reward tracking</li>
+                    <li><i class="bi bi-check-circle-fill"></i> Full transaction history</li>
+                </ul>
+            </div>
+            <div class="col-lg-6">
+                <div class="ph-flow-card">
+                    <div class="ph-flow-step">Complete Task</div>
+                    <i class="bi bi-arrow-down ph-flow-arrow"></i>
+                    <div class="ph-flow-step">Task Approval</div>
+                    <i class="bi bi-arrow-down ph-flow-arrow"></i>
+                    <div class="ph-flow-step">Reward Added</div>
+                    <i class="bi bi-arrow-down ph-flow-arrow"></i>
+                    <div class="ph-flow-step ph-flow-step-final">Wallet Balance Updated</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ REFERRAL SYSTEM ============ -->
+<section class="ph-section">
+    <div class="container">
+        <div class="row align-items-center g-5 flex-lg-row-reverse">
+            <div class="col-lg-6">
+                <h2 class="ph-section-title">Referral System</h2>
+                <p class="ph-section-lead">
+                    Share your unique referral code with others. Users receive referral rewards when referred
+                    members successfully join according to platform rules — helping you grow your network while
+                    they start earning too.
+                </p>
+            </div>
+            <div class="col-lg-6">
+                <div class="ph-flow-card">
+                    <div class="ph-flow-step">Your Referral Code</div>
+                    <i class="bi bi-arrow-down ph-flow-arrow"></i>
+                    <div class="ph-flow-step">New User Registration</div>
+                    <i class="bi bi-arrow-down ph-flow-arrow"></i>
+                    <div class="ph-flow-step">Successful Referral</div>
+                    <i class="bi bi-arrow-down ph-flow-arrow"></i>
+                    <div class="ph-flow-step ph-flow-step-final">Referral Reward</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ ACCOUNT LEVEL SYSTEM ============ -->
+<section class="ph-section ph-section-alt">
+    <div class="container">
+        <h2 class="ph-section-title text-center">Account Level System</h2>
+        <p class="ph-section-lead text-center ph-mx-auto">
+            Successful referrals contribute toward account level progression. Higher levels provide
+            eligibility for additional platform benefits.
+        </p>
+        <div class="ph-level-track">
+            <div class="ph-level-node">Level 1</div>
+            <i class="bi bi-arrow-right ph-level-arrow"></i>
+            <div class="ph-level-node">Level 2</div>
+            <i class="bi bi-arrow-right ph-level-arrow"></i>
+            <div class="ph-level-node">Level 3</div>
+            <i class="bi bi-arrow-right ph-level-arrow"></i>
+            <div class="ph-level-node">Level 4</div>
+            <i class="bi bi-arrow-right ph-level-arrow"></i>
+            <div class="ph-level-node ph-level-node-final">Level 5</div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ WALLET SYSTEM ============ -->
+<section class="ph-section">
+    <div class="container">
+        <h2 class="ph-section-title">Wallet System</h2>
+        <p class="ph-section-lead">
+            Track everything in one place — available balance, earned rewards, referral rewards, withdrawal
+            history and full transaction records.
+        </p>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="ph-card ph-wallet-card">
+                    <p class="ph-wallet-label">Wallet Balance</p>
+                    <p class="ph-wallet-amount">PKR XXXXX</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="ph-card ph-wallet-card">
+                    <p class="ph-wallet-label">Total Rewards</p>
+                    <p class="ph-wallet-amount">XXXXX</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="ph-card ph-wallet-card">
+                    <p class="ph-wallet-label">Withdrawn Amount</p>
+                    <p class="ph-wallet-amount">XXXXX</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ WITHDRAWAL SYSTEM ============ -->
+<section class="ph-section ph-section-alt">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <h2 class="ph-section-title">Withdrawal System</h2>
+                <p class="ph-section-lead">
+                    Withdrawal requests go through an admin review step before approval, with every step
+                    tracked in your transaction history. Supported payment methods:
+                </p>
+                <div class="ph-payment-methods">
+                    <span class="ph-payment-badge"><i class="bi bi-phone"></i> JazzCash</span>
+                    <span class="ph-payment-badge"><i class="bi bi-phone"></i> Easypaisa</span>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="ph-flow-card">
+                    <div class="ph-flow-step">Available Balance</div>
+                    <i class="bi bi-arrow-down ph-flow-arrow"></i>
+                    <div class="ph-flow-step">Withdrawal Request</div>
+                    <i class="bi bi-arrow-down ph-flow-arrow"></i>
+                    <div class="ph-flow-step">Admin Review</div>
+                    <i class="bi bi-arrow-down ph-flow-arrow"></i>
+                    <div class="ph-flow-step">Approved / Rejected</div>
+                    <i class="bi bi-arrow-down ph-flow-arrow"></i>
+                    <div class="ph-flow-step ph-flow-step-final">Wallet Updated</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ TASK SYSTEM ============ -->
+<section class="ph-section">
+    <div class="container">
+        <h2 class="ph-section-title">Task System</h2>
+        <p class="ph-section-lead">Users can access available tasks. After completing tasks:</p>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="ph-card">
+                    <i class="bi bi-patch-check ph-card-icon"></i>
+                    <h3 class="ph-card-title">Completion Verified</h3>
+                    <p class="ph-card-text">Every submitted task is checked before it's approved.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="ph-card">
+                    <i class="bi bi-coin ph-card-icon"></i>
+                    <h3 class="ph-card-title">Rewards Credited</h3>
+                    <p class="ph-card-text">Approved tasks credit rewards straight to the wallet.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="ph-card">
+                    <i class="bi bi-clock-history ph-card-icon"></i>
+                    <h3 class="ph-card-title">Daily Limits Respected</h3>
+                    <p class="ph-card-text">Fair usage limits keep the task system sustainable for everyone.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="ph-section ph-section-alt">
+    <div class="container">
+        <h2 class="ph-section-title text-center">Frequently Asked Questions</h2>
+        <div class="ph-faq ph-mx-auto">
+            <details class="ph-faq-item">
+                <summary>How do users earn rewards?</summary>
+                <p>Users earn rewards by completing available tasks. Once a completed task is verified, the reward is credited to the user's wallet.</p>
+            </details>
+            <details class="ph-faq-item">
+                <summary>How does the referral system work?</summary>
+                <p>Every user gets a unique referral code. When someone registers using that code and becomes a successful member, the referring user receives a referral reward according to platform rules.</p>
+            </details>
+            <details class="ph-faq-item">
+                <summary>How are rewards added to the wallet?</summary>
+                <p>Once a task is approved or a referral is confirmed, the reward is added to the user's wallet balance and recorded in the transaction history.</p>
+            </details>
+            <details class="ph-faq-item">
+                <summary>How can users withdraw earnings?</summary>
+                <p>Eligible users can submit a withdrawal request from their wallet. Requests are reviewed by the admin team and paid out through supported payment methods such as JazzCash and Easypaisa.</p>
+            </details>
+            <details class="ph-faq-item">
+                <summary>What are account levels?</summary>
+                <p>Account levels reflect a user's progress on the platform. Successful referrals contribute toward level progression, and higher levels unlock eligibility for additional platform benefits.</p>
+            </details>
+            <details class="ph-faq-item">
+                <summary>How do tasks work?</summary>
+                <p>Users access available tasks from their dashboard, complete them, and submit them for verification. Approved tasks are credited to the wallet, subject to daily limits.</p>
+            </details>
+        </div>
+    </div>
+</section>
+
+<!-- ============ FINAL CTA ============ -->
+<section class="ph-cta">
+    <div class="container text-center">
+        <h2 class="ph-cta-title">Ready to start?</h2>
+        <p class="ph-cta-desc">Create your account and explore tasks, rewards and earning features.</p>
+        <div class="ph-hero-actions">
+            <a href="/signup" class="btn btn-public-accent btn-lg">Register Now</a>
+            <a href="/login" class="btn btn-public-ghost btn-lg">Login</a>
+        </div>
+    </div>
+</section>

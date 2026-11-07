@@ -1,0 +1,33 @@
+@page "/user/channel"
+@attribute [Authorize(Policy = "RequireActiveUser")]
+@layout Components.Layout.UserLayout
+@using EarnPlatform.Services.Interfaces
+@inject ISettingsService SettingsService
+
+<PageTitle>Official Channel</PageTitle>
+
+<h4 class="fw-bold mb-3">Official WhatsApp Channel</h4>
+
+@if (_settings == null)
+{
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+else
+{
+    <div class="card p-4 text-center">
+        <i class="bi bi-broadcast text-primary channel-icon"></i>
+        <p class="text-muted mt-2">Join our official channel for updates, announcements, and tips.</p>
+        <a href="@_settings.WhatsAppChannelLink" target="_blank" class="btn btn-primary">
+            <i class="bi bi-box-arrow-up-right me-1"></i> Open Channel
+        </a>
+    </div>
+}
+
+@code {
+    private Models.ChannelSettings? _settings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _settings = await SettingsService.GetChannelSettingsAsync();
+    }
+}

@@ -1,0 +1,27 @@
+## .NET / Visual Studio build artifacts
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+## Rider / VS Code
+.idea/
+.vscode/
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Secrets — never commit
+*.pfx
+appsettings.*.local.json
+**/appsettings.Production.json
+
+## Data Protection keys (must never be in source control)
+**/private/dp-keys/
+**/private/dp-keys/**
+
+## Payment evidence (private uploads)
+**/private/payment-screenshots/**
+!**/private/payment-screenshots/.gitkeep

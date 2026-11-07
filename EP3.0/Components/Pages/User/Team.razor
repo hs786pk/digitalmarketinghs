@@ -1,0 +1,80 @@
+@page "/user/team"
+@attribute [Authorize(Policy = "RequireActiveUser")]
+@layout Components.Layout.UserLayout
+@using EarnPlatform.Models
+@using EarnPlatform.Services.Interfaces
+@inject ICurrentUserService CurrentUserService
+@inject IReferralService ReferralService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Team</PageTitle>
+
+@if (_stats == null)
+{
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+else
+{
+    <h4 class="fw-bold mb-3">Team</h4>
+
+    <div class="row g-2 mb-4">
+        <div class="col-6 col-md-3"><EarningTile Title="Active Team Members" Amount="@_stats.ActiveTeamMembers" Icon="bi-people-fill" IsCurrency="false" /></div>
+        <div class="col-6 col-md-3"><EarningTile Title="Direct Referrals" Amount="@_stats.DirectReferrals" Icon="bi-person-plus-fill" IsCurrency="false" /></div>
+        <div class="col-6 col-md-3"><EarningTile Title="Account Level" Amount="@_stats.AccountLevel" Icon="bi-layers-fill" IsCurrency="false" /></div>
+        <div class="col-6 col-md-3"><EarningTile Title="Daily Ad Limit" Amount="@_stats.DailyAdLimit" Icon="bi-calendar-check-fill" IsCurrency="false" /></div>
+    </div>
+
+    <h6 class="fw-bold mb-2">Your Referrals</h6>
+
+    @if (_referredUsers.Count == 0)
+    {
+        <div class="text-center text-muted py-4 card">
+            <i class="bi bi-people fs-3 d-block mb-1"></i>
+            No referrals yet. Share your referral link to build your team!
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive card">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr class="text-muted small">
+                        <th>Name</th>
+                        <th>Joined</th>
+                        <th>Package</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var member in _referredUsers)
+                    {
+                        <tr>
+                            <td class="small">@member.FirstName @member.LastName</td>
+                            <td class="small">@EarnPlatform.Common.DisplayTime.Format(member.CreatedAt)</td>
+                            <td class="small">@(member.SelectedPackage?.Name ?? "—")</td>
+                            <td><EarnPlatform.Components.Shared.StatusBadge Status="@member.AccountStatus.ToString()" /></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    private TeamStats? _stats;
+    private List<UserAccount> _referredUsers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await CurrentUserService.GetCurrentUserAccountAsync();
+        if (user == null)
+        {
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        _stats = await ReferralService.GetTeamStatsAsync(user.Id);
+        _referredUsers = await ReferralService.GetReferredUsersAsync(user.Id);
+    }
+}

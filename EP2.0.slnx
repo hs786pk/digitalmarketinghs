@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="EP3.0/EarnPlatform.csproj" />
+  <Project Path="EarnPlatform.Mobile/EarnPlatform.Mobile.csproj" />
+</Solution>

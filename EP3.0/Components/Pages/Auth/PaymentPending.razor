@@ -1,0 +1,15 @@
+﻿@page "/payment-pending"
+@attribute [Authorize(Policy = "RequireUserRole")]
+@layout Components.Layout.AuthLayout
+
+<PageTitle>Payment Submitted</PageTitle>
+
+<div class="auth-card text-center">
+    <i class="bi bi-hourglass-split text-warning payment-pending-icon"></i>
+    <h4 class="fw-bold mt-3">Payment Submitted!</h4>
+    <p class="text-muted">
+        Your payment is under review. Your account will be activated once an
+        administrator approves your submission — this usually doesn't take long.
+    </p>
+    <a href="/login" class="btn btn-outline-primary mt-2">Back to Sign In</a>
+</div>

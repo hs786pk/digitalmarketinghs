@@ -1,0 +1,129 @@
+@page "/user/work/view/{CompletionId:int}"
+@attribute [Authorize(Policy = "RequireActiveUser")]
+@implements IDisposable
+@layout Components.Layout.UserLayout
+@using EarnPlatform.Services.Interfaces
+@using EarnPlatform.Repositories.Interfaces
+@inject ICurrentUserService CurrentUserService
+@inject IWorkTaskService WorkTaskService
+@inject IWorkTaskCompletionRepository CompletionRepository
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
+
+<PageTitle>Watch & Earn</PageTitle>
+
+@if (_task == null)
+{
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+else if (_completed)
+{
+    <div class="text-center py-5">
+        <i class="bi bi-check-circle-fill text-success reward-icon"></i>
+        <h5 class="fw-bold mt-3">Reward Credited!</h5>
+        <p class="text-muted">PKR @_task.RewardAmount.ToString("N0") has been added to your wallet.</p>
+        <a href="/user/work" class="btn btn-primary">Back to Tasks</a>
+    </div>
+}
+else
+{
+    <div class="text-center py-4">
+        <i class="bi bi-box-arrow-up-right text-primary task-icon"></i>
+        <h5 class="fw-bold mt-3">@_task.Title</h5>
+        <p class="text-muted">
+            The ad opened in a new tab (or the YouTube app on mobile). Watch it fully,
+            then come back here to claim your reward.
+        </p>
+
+        <button class="btn btn-outline-primary btn-sm mb-4" @onclick="ReopenAdAsync">
+            <i class="bi bi-arrow-repeat me-1"></i> Didn't open? Try again
+        </button>
+
+        @if (_secondsRemaining > 0)
+        {
+            <p class="text-muted small">You can claim your reward in @_secondsRemaining seconds...</p>
+            <button class="btn btn-success w-100 py-2" disabled>
+                Claim Reward
+            </button>
+        }
+        else
+        {
+            <button class="btn btn-success w-100 py-2" @onclick="CompleteAsync" disabled="@_isSubmitting">
+                @if (_isSubmitting)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                Claim Reward
+            </button>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public int CompletionId { get; set; }
+
+    private Models.WorkTask? _task;
+    private Models.UserAccount? _user;
+    private bool _completed;
+    private bool _isSubmitting;
+    private int _secondsRemaining = 15;
+    private System.Threading.Timer? _timer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _user = await CurrentUserService.GetCurrentUserAccountAsync();
+        if (_user == null)
+        {
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        var completion = await CompletionRepository.GetWithTaskAsync(CompletionId);
+        if (completion == null || completion.UserId != _user.Id)
+        {
+            NavigationManager.NavigateTo("/user/work");
+            return;
+        }
+
+        _task = completion.WorkTask;
+
+        _timer = new System.Threading.Timer(_ =>
+        {
+            if (_secondsRemaining > 0)
+            {
+                _secondsRemaining--;
+                InvokeAsync(StateHasChanged);
+            }
+        }, null, 1000, 1000);
+    }
+
+    private async Task ReopenAdAsync()
+    {
+        if (_task != null)
+            await JS.InvokeVoidAsync("earnPlatform.openAd", _task.AdUrl);
+    }
+
+    private async Task CompleteAsync()
+    {
+        _isSubmitting = true;
+        try
+        {
+            await WorkTaskService.CompleteTaskAsync(_user!.Id, CompletionId);
+            _completed = true;
+        }
+        catch (AppException)
+        {
+            NavigationManager.NavigateTo("/user/work");
+        }
+        catch (Exception)
+        {
+            NavigationManager.NavigateTo("/user/work");
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    public void Dispose() => _timer?.Dispose();
+}

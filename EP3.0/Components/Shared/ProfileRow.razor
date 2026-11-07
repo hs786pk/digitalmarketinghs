@@ -1,0 +1,10 @@
+﻿<div class="d-flex justify-content-between py-2 @(IsLast ? "" : "border-bottom")">
+    <span class="text-muted">@Label</span>
+    <span class="fw-semibold">@Value</span>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Value { get; set; } = string.Empty;
+    [Parameter] public bool IsLast { get; set; }
+}

@@ -1,0 +1,171 @@
+@page "/signup"
+@attribute [ExcludeFromInteractiveRouting]
+@layout Components.Layout.AuthLayout
+@using EarnPlatform.Services.Interfaces
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Endpoints
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Sign Up | Digital-Marketing Group</PageTitle>
+
+<HeadContent>
+    <meta name="description"
+          content="Create your Digital-Marketing Group account and access online earning tasks, referral rewards, account levels and wallet features." />
+
+    <meta name="robots" content="index, follow" />
+
+    <link rel="canonical"
+          href="https://digital-marketingpk.com/signup" />
+
+    <meta property="og:title"
+          content="Create Your Account | Digital-Marketing Group" />
+
+    <meta property="og:description"
+          content="Join Digital-Marketing Group and access task-based earning and referral reward opportunities." />
+
+    <meta property="og:url"
+          content="https://digital-marketingpk.com/signup" />
+
+    <meta property="og:type"
+          content="website" />
+</HeadContent>
+<div class="auth-card">
+    <div class="text-center mb-4">
+        <i class="bi bi-person-plus-fill text-primary auth-signup-icon"></i>
+        <h5 class="fw-bold mt-2 mb-0">Digital-Marketing Group</h5>
+        <h3 class="fw-bold mt-2">Create Your Account</h3>
+        <p class="text-muted">Start earning in minutes</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="alert alert-danger py-2 rounded">@_errorMessage</div>
+    }
+
+    <EditForm Model="_model" FormName="SignupForm" OnValidSubmit="HandleSignupAsync">
+        <DataAnnotationsValidator />
+
+        <div class="mb-3">
+            <label class="form-label">Referral Code <span class="text-muted">(optional)</span></label>
+            <InputText @bind-Value="_model.ReferralCode" class="form-control" placeholder="e.g. AB12CD34" />
+        </div>
+
+        <div class="row">
+            <div class="col-6 mb-3">
+                <label class="form-label">First Name</label>
+                <InputText @bind-Value="_model.FirstName" class="form-control" />
+                <ValidationMessage For="() => _model.FirstName" class="text-danger small" />
+            </div>
+            <div class="col-6 mb-3">
+                <label class="form-label">Last Name</label>
+                <InputText @bind-Value="_model.LastName" class="form-control" />
+                <ValidationMessage For="() => _model.LastName" class="text-danger small" />
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Email</label>
+            <InputText @bind-Value="_model.Email" class="form-control" placeholder="you@example.com" />
+            <ValidationMessage For="() => _model.Email" class="text-danger small" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Password</label>
+            <InputText @bind-Value="_model.Password" type="password" class="form-control" />
+            <ValidationMessage For="() => _model.Password" class="text-danger small" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Confirm Password</label>
+            <InputText @bind-Value="_model.ConfirmPassword" type="password" class="form-control" />
+            <ValidationMessage For="() => _model.ConfirmPassword" class="text-danger small" />
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-2">
+            Sign Up
+        </button>
+    </EditForm>
+
+    <div class="text-center mt-4">
+        <a href="/login" class="fw-semibold text-decoration-none">← Back to Sign In</a>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "ref")]
+    public string? RefCode { get; set; }
+
+#pragma warning disable BL0008
+    [SupplyParameterFromForm]
+    private SignupModel _model { get; set; } = new();
+#pragma warning restore BL0008
+
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            var isAdmin = authState.User.IsInRole("Admin");
+            NavigationManager.NavigateTo(isAdmin ? "/admin" : "/user");
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(RefCode) && string.IsNullOrWhiteSpace(_model.ReferralCode))
+            _model.ReferralCode = RefCode;
+    }
+
+    private async Task HandleSignupAsync()
+    {
+        _errorMessage = null;
+
+        try
+        {
+            var result = await AuthService.RegisterUserAsync(
+                _model.FirstName, _model.LastName, _model.Email, _model.Password, _model.ReferralCode);
+
+            if (!result.Succeeded)
+            {
+                _errorMessage = string.Join(" ", result.Errors);
+                return;
+            }
+
+            var loginResult = await AuthService.LoginAsync(_model.Email, _model.Password, rememberMe: true);
+            NavigationManager.NavigateTo(loginResult.Succeeded ? "/packages" : "/login");
+        }
+        catch (InvalidOperationException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Something went wrong creating your account. Please try again.";
+        }
+    }
+
+    public class SignupModel
+    {
+        public string? ReferralCode { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "First name is required.")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Last name is required.")]
+        public string LastName { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Email is required.")]
+        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Enter a valid email address.")]
+        public string Email { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Password is required.")]
+        [System.ComponentModel.DataAnnotations.MinLength(8, ErrorMessage = "Password must be at least 8 characters.")]
+        public string Password { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Please confirm your password.")]
+        [System.ComponentModel.DataAnnotations.Compare(nameof(Password), ErrorMessage = "Passwords do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+}

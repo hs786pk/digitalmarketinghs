@@ -1,0 +1,26 @@
+﻿@if (IsOpen)
+{
+    <div class="modal-backdrop-custom">
+        <div class="confirm-dialog">
+            <h6 class="fw-bold">@Title</h6>
+            <p class="text-muted small">@Message</p>
+            <div class="d-flex gap-2 justify-content-end">
+                <button class="btn btn-sm btn-outline-secondary" @onclick="Cancel">Cancel</button>
+                <button class="btn btn-sm @ConfirmButtonClass" @onclick="Confirm">@ConfirmText</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public string Title { get; set; } = "Are you sure?";
+    [Parameter] public string Message { get; set; } = "This action cannot be undone.";
+    [Parameter] public string ConfirmText { get; set; } = "Confirm";
+    [Parameter] public string ConfirmButtonClass { get; set; } = "btn-danger";
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private async Task Confirm() => await OnConfirm.InvokeAsync();
+    private async Task Cancel() => await OnCancel.InvokeAsync();
+}

@@ -1,0 +1,192 @@
+﻿@page "/admin/packages"
+@attribute [Authorize(Policy = "RequireAdminRole")]
+@layout Components.Layout.AdminLayout
+@using EarnPlatform.Models
+@using EarnPlatform.Services.Interfaces
+@inject IPackageService PackageService
+
+<PageTitle>Packages</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold mb-0">Packages</h4>
+    <button class="btn btn-primary btn-sm" @onclick="OpenCreate">
+        <i class="bi bi-plus-lg me-1"></i> Add Package
+    </button>
+</div>
+
+@if (_errorMessage != null)
+{
+    <div class="alert alert-danger rounded">@_errorMessage</div>
+}
+
+@if (_packages == null)
+{
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+else
+{
+    <div class="table-responsive card">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr class="text-muted small">
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Level</th>
+                    <th>Daily Limit</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var pkg in _packages)
+                {
+                    <tr>
+                        <td class="fw-semibold small">@pkg.Name</td>
+                        <td class="small">PKR @pkg.Price.ToString("N0")</td>
+                        <td class="small">@pkg.Level</td>
+                        <td class="small">@pkg.DailyAdLimit</td>
+                        <td>
+                            <span class="badge @(pkg.IsActive ? "bg-success" : "bg-secondary")">
+                                @(pkg.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => OpenEdit(pkg)"><i class="bi bi-pencil"></i></button>
+                                <button class="btn btn-sm @(pkg.IsActive ? "btn-outline-secondary" : "btn-outline-success")"
+                                        @onclick="() => ToggleActiveAsync(pkg)">
+                                    <i class="bi @(pkg.IsActive ? "bi-pause-fill" : "bi-play-fill")"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (_formOpen)
+{
+    <div class="modal-backdrop-custom">
+        <div class="confirm-dialog package-edit-dialog">
+            <h6 class="fw-bold mb-3">@(_editingId == null ? "Add Package" : "Edit Package")</h6>
+
+            <EditForm Model="_form" OnValidSubmit="HandleSaveAsync">
+                <DataAnnotationsValidator />
+
+                <div class="mb-2">
+                    <label class="form-label small">Name</label>
+                    <InputText @bind-Value="_form.Name" class="form-control form-control-sm" />
+                    <ValidationMessage For="() => _form.Name" class="text-danger small" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">Price (PKR)</label>
+                    <InputNumber @bind-Value="_form.Price" class="form-control form-control-sm" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">Level</label>
+                    <InputNumber @bind-Value="_form.Level" class="form-control form-control-sm" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">Daily Ad Limit</label>
+                    <InputNumber @bind-Value="_form.DailyAdLimit" class="form-control form-control-sm" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">Description</label>
+                    <InputTextArea @bind-Value="_form.Description" class="form-control form-control-sm" rows="2" />
+                </div>
+                <div class="form-check mb-3">
+                    <InputCheckbox @bind-Value="_form.IsActive" class="form-check-input" id="pkgActive" />
+                    <label class="form-check-label small" for="pkgActive">Active</label>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => _formOpen = false">Cancel</button>
+                    <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Package>? _packages;
+    private bool _formOpen;
+    private int? _editingId;
+    private PackageFormModel _form = new();
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync() => _packages = await PackageService.GetAllPackagesAsync();
+
+    private void OpenCreate()
+    {
+        _editingId = null;
+        _form = new PackageFormModel { IsActive = true };
+        _formOpen = true;
+        _errorMessage = null;
+    }
+
+    private void OpenEdit(Package pkg)
+    {
+        _editingId = pkg.Id;
+        _form = new PackageFormModel
+        {
+            Name = pkg.Name,
+            Price = pkg.Price,
+            Level = pkg.Level,
+            DailyAdLimit = pkg.DailyAdLimit,
+            Description = pkg.Description,
+            IsActive = pkg.IsActive
+        };
+        _formOpen = true;
+        _errorMessage = null;
+    }
+
+    private async Task HandleSaveAsync()
+    {
+        try
+        {
+            if (_editingId == null)
+                await PackageService.CreatePackageAsync(_form.Name, _form.Price, _form.Level, _form.DailyAdLimit, _form.Description);
+            else
+                await PackageService.UpdatePackageAsync(_editingId.Value, _form.Name, _form.Price, _form.Level, _form.DailyAdLimit, _form.Description, _form.IsActive);
+
+            _formOpen = false;
+            await LoadAsync();
+        }
+        catch (AppException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Something went wrong. Please try again.";
+        }
+    }
+
+    private async Task ToggleActiveAsync(Package pkg)
+    {
+        await PackageService.SetActiveStatusAsync(pkg.Id, !pkg.IsActive);
+        await LoadAsync();
+    }
+
+    public class PackageFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Name is required.")]
+        public string Name { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Range(1, double.MaxValue, ErrorMessage = "Price must be positive.")]
+        public decimal Price { get; set; }
+
+        public int Level { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Range(1, int.MaxValue, ErrorMessage = "Daily limit must be at least 1.")]
+        public int DailyAdLimit { get; set; } = 1;
+
+        public string? Description { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+}

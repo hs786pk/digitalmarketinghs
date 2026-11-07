@@ -1,0 +1,103 @@
+@page "/user/wallet"
+@attribute [Authorize(Policy = "RequireActiveUser")]
+@layout Components.Layout.UserLayout
+@using EarnPlatform.Models
+@using EarnPlatform.Services.Interfaces
+@inject ICurrentUserService CurrentUserService
+@inject IWalletService WalletService
+@inject IWithdrawalService WithdrawalService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Wallet</PageTitle>
+
+@if (_wallet == null)
+{
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+else
+{
+    <h4 class="fw-bold mb-3">Wallet</h4>
+
+    <div class="balance-card mb-3">
+        <div class="small text-white-50">Available Balance</div>
+        <div class="fs-2 fw-bold">PKR @_wallet.Balance.ToString("N2")</div>
+        <a href="/user/withdraw" class="btn btn-light btn-sm mt-2">
+            <i class="bi bi-cash-coin me-1"></i> Withdraw
+        </a>
+    </div>
+
+    <div class="row g-2 mb-4">
+        <div class="col-6 col-md-4"><EarningTile Title="Current Earning" Amount="@_wallet.CurrentEarning" Icon="bi-graph-up" /></div>
+        <div class="col-6 col-md-4"><EarningTile Title="Referral Earning" Amount="@_wallet.ReferralEarning" Icon="bi-people" /></div>
+        <div class="col-6 col-md-4"><EarningTile Title="Staff Earning" Amount="@_wallet.StaffEarning" Icon="bi-briefcase" /></div>
+        <div class="col-6 col-md-4"><EarningTile Title="Approved Earning" Amount="@_wallet.ApprovedEarning" Icon="bi-check-circle" /></div>
+        <div class="col-6 col-md-4"><EarningTile Title="Pending Earning" Amount="@_wallet.PendingEarning" Icon="bi-hourglass-split" /></div>
+        <div class="col-6 col-md-4"><EarningTile Title="Rejected Earning" Amount="@_wallet.RejectedEarning" Icon="bi-x-circle" /></div>
+    </div>
+
+    <h6 class="fw-bold mb-2">Withdrawal History</h6>
+
+    @if (_withdrawals.Count == 0)
+    {
+        <div class="text-center text-muted py-4 card">
+            <i class="bi bi-inbox fs-3 d-block mb-1"></i>
+            No withdrawal requests yet.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive card">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr class="text-muted small">
+                        <th>Date</th>
+                        <th>Method</th>
+                        <th>Account</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Processed</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var w in _withdrawals)
+                    {
+                        <tr>
+                            <td class="small">@EarnPlatform.Common.DisplayTime.Format(w.RequestedAt)</td>
+                            <td class="small">@w.PaymentMethod</td>
+                            <td class="small">@MaskAccountNumber(w.AccountNumber)</td>
+                            <td class="small fw-semibold">PKR @w.Amount.ToString("N0")</td>
+                            <td><EarnPlatform.Components.Shared.StatusBadge Status="@w.Status.ToString()" /></td>
+                            <td class="small">@(w.ProcessedAt is DateTime wp ? EarnPlatform.Common.DisplayTime.Format(wp) : "—")</td>
+                            <td class="small text-muted">@(w.AdminRemarks ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    private EarnPlatform.Models.Wallet? _wallet;
+    private List<WithdrawalRequest> _withdrawals = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await CurrentUserService.GetCurrentUserAccountAsync();
+        if (user == null)
+        {
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        _wallet = await WalletService.GetOrCreateWalletAsync(user.Id);
+        _withdrawals = await WithdrawalService.GetUserHistoryAsync(user.Id);
+    }
+
+    private static string MaskAccountNumber(string accountNumber)
+    {
+        if (accountNumber.Length <= 4) return accountNumber;
+        return new string('*', accountNumber.Length - 4) + accountNumber[^4..];
+    }
+}

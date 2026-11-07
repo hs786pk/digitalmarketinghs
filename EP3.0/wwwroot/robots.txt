@@ -1,0 +1,8 @@
+﻿User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /user/
+Disallow: /payment/
+Disallow: /payment-pending/
+
+Sitemap: https://digital-marketingpk.com/sitemap.xml

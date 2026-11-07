@@ -1,0 +1,47 @@
+@page "/user/profile"
+@attribute [Authorize(Policy = "RequireActiveUser")]
+@layout Components.Layout.UserLayout
+@using EarnPlatform.Models
+@using EarnPlatform.Services.Interfaces
+@inject ICurrentUserService CurrentUserService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Profile</PageTitle>
+
+@if (_user == null)
+{
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+else
+{
+    <h4 class="fw-bold mb-3">Profile</h4>
+
+    <div class="card p-3">
+        <ProfileRow Label="First Name" Value="@_user.FirstName" />
+        <ProfileRow Label="Last Name" Value="@_user.LastName" />
+        <ProfileRow Label="Email" Value="@_user.Email" />
+        <ProfileRow Label="Referral Code" Value="@_user.ReferralCode" />
+        <ProfileRow Label="Selected Package" Value="@(_user.SelectedPackage?.Name ?? "—")" />
+        <ProfileRow Label="Account Level" Value="@_user.AccountLevel.ToString()" />
+        <ProfileRow Label="Daily Ad Limit" Value="@(_user.SelectedPackage?.DailyAdLimit.ToString() ?? "—")" />
+        <ProfileRow Label="Account Status" Value="@_user.AccountStatus.ToString()" IsLast="true" />
+    </div>
+
+    <p class="text-muted small mt-2">Registered on @EarnPlatform.Common.DisplayTime.Format(_user.CreatedAt)</p>
+
+    <form method="post" action="/account/logout" class="d-inline">
+            <AntiforgeryToken /><button type="submit" class="btn btn-outline-danger w-100 mt-3">
+        <i class="bi bi-box-arrow-right me-1"></i> Logout
+    </button></form>
+}
+
+@code {
+    private UserAccount? _user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _user = await CurrentUserService.GetCurrentUserAccountAsync();
+        if (_user == null)
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+    }
+}

@@ -1,0 +1,148 @@
+﻿@page "/admin/tasks"
+@attribute [Authorize(Policy = "RequireAdminRole")]
+@layout Components.Layout.AdminLayout
+@using EarnPlatform.Models
+@using EarnPlatform.Services.Interfaces
+@inject IWorkTaskService WorkTaskService
+
+<PageTitle>Tasks</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold mb-0">Work Tasks</h4>
+    <button class="btn btn-primary btn-sm" @onclick="OpenCreate">
+        <i class="bi bi-plus-lg me-1"></i> Add Task
+    </button>
+</div>
+
+@if (_tasks == null)
+{
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var task in _tasks)
+        {
+            <div class="col-12 col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="fw-bold">@task.Title</h6>
+                            <span class="badge @(task.IsActive ? "bg-success" : "bg-secondary")">
+                                @(task.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </div>
+                        <p class="text-muted small">@task.Description</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-success">PKR @task.RewardAmount.ToString("N0")</span>
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => OpenEdit(task)">
+                                <i class="bi bi-pencil"></i> Edit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@if (_formOpen)
+{
+    <div class="modal-backdrop-custom">
+        <div class="confirm-dialog task-edit-dialog">
+            <h6 class="fw-bold mb-3">@(_editingId == null ? "Add Task" : "Edit Task")</h6>
+
+            <EditForm Model="_form" OnValidSubmit="HandleSaveAsync">
+                <DataAnnotationsValidator />
+
+                <div class="mb-2">
+                    <label class="form-label small">Title</label>
+                    <InputText @bind-Value="_form.Title" class="form-control form-control-sm" />
+                    <ValidationMessage For="() => _form.Title" class="text-danger small" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">Description</label>
+                    <InputTextArea @bind-Value="_form.Description" class="form-control form-control-sm" rows="2" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">Ad/Video URL</label>
+                    <InputText @bind-Value="_form.AdUrl" class="form-control form-control-sm" />
+                    <ValidationMessage For="() => _form.AdUrl" class="text-danger small" />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">Reward Amount (PKR)</label>
+                    <InputNumber @bind-Value="_form.RewardAmount" class="form-control form-control-sm" />
+                </div>
+                <div class="form-check mb-3">
+                    <InputCheckbox @bind-Value="_form.IsActive" class="form-check-input" id="taskActive" />
+                    <label class="form-check-label small" for="taskActive">Active</label>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="() => _formOpen = false">Cancel</button>
+                    <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    private List<WorkTask>? _tasks;
+    private bool _formOpen;
+    private int? _editingId;
+    private TaskFormModel _form = new();
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync() => _tasks = await WorkTaskService.GetAllTasksAsync();
+
+    private void OpenCreate()
+    {
+        _editingId = null;
+        _form = new TaskFormModel { IsActive = true };
+        _formOpen = true;
+    }
+
+    private void OpenEdit(WorkTask task)
+    {
+        _editingId = task.Id;
+        _form = new TaskFormModel
+        {
+            Title = task.Title,
+            Description = task.Description,
+            AdUrl = task.AdUrl,
+            RewardAmount = task.RewardAmount,
+            IsActive = task.IsActive
+        };
+        _formOpen = true;
+    }
+
+    private async Task HandleSaveAsync()
+    {
+        if (_editingId == null)
+            await WorkTaskService.CreateTaskAsync(_form.Title, _form.Description, _form.AdUrl, _form.RewardAmount);
+        else
+            await WorkTaskService.UpdateTaskAsync(_editingId.Value, _form.Title, _form.Description, _form.AdUrl, _form.RewardAmount, _form.IsActive);
+
+        _formOpen = false;
+        await LoadAsync();
+    }
+
+    public class TaskFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Title is required.")]
+        public string Title { get; set; } = string.Empty;
+
+        public string? Description { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Ad URL is required.")]
+        [System.ComponentModel.DataAnnotations.Url(ErrorMessage = "Enter a valid URL.")]
+        public string AdUrl { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Range(0, double.MaxValue, ErrorMessage = "Reward must be zero or positive.")]
+        public decimal RewardAmount { get; set; }
+
+        public bool IsActive { get; set; } = true;
+    }
+}

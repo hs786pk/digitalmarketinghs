@@ -1,0 +1,123 @@
+@page "/admin/account-approvals"
+@attribute [Authorize(Policy = "RequireAdminRole")]
+@layout Components.Layout.AdminLayout
+@using EarnPlatform.Models
+@using EarnPlatform.Services.Interfaces
+@inject IPaymentApprovalService PaymentApprovalService
+
+<PageTitle>Account Approvals</PageTitle>
+
+<h4 class="fw-bold mb-3">Account Approvals</h4>
+@if (_errorMessage != null) { <div class="alert alert-danger rounded">@_errorMessage</div> }
+
+@if (_approvals == null)
+{
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+else if (_approvals.Count == 0)
+{
+    <div class="text-center text-muted py-5 card">
+        <i class="bi bi-check2-all fs-2 d-block mb-1"></i>
+        No pending payment approvals.
+    </div>
+}
+else
+{
+    @foreach (var approval in _approvals)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <img src="/admin/payment-screenshot/@approval.Id" class="img-fluid rounded border payment-screenshot" alt="Payment screenshot" loading="lazy" />
+                    </div>
+                    <div class="col-md-8">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="fw-bold mb-1">@approval.User.FirstName @approval.User.LastName</h6>
+                            <EarnPlatform.Components.Shared.StatusBadge Status="@approval.Status.ToString()" />
+                        </div>
+                        <p class="text-muted small mb-1">@approval.User.Email</p>
+                        <div class="small">
+                            <div><span class="text-muted">Package:</span> @approval.Package.Name — PKR @approval.Package.Price.ToString("N0")</div>
+                            <div><span class="text-muted">Account Name:</span> @approval.AccountName</div>
+                            <div><span class="text-muted">Transaction ID:</span> @approval.TransactionId</div>
+                            <div><span class="text-muted">Submitted:</span> @EarnPlatform.Common.DisplayTime.FormatDateTime(approval.SubmittedAt)</div>
+                        </div>
+                        <div class="d-flex gap-2 mt-3">
+                            <button class="btn btn-success btn-sm" @onclick="() => OpenConfirm(approval.Id, true)">
+                                <i class="bi bi-check-lg me-1"></i> Approve
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" @onclick="() => OpenReject(approval.Id)">
+                                <i class="bi bi-x-lg me-1"></i> Reject
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+<EarnPlatform.Components.Shared.ConfirmDialog IsOpen="@_confirmOpen"
+                                              Title="Approve Payment"
+                                              Message="This will activate the user's account and package. Continue?"
+                                              ConfirmText="Approve"
+                                              ConfirmButtonClass="btn-success"
+                                              OnConfirm="HandleApproveConfirmedAsync"
+                                              OnCancel="() => _confirmOpen = false" />
+
+@if (_rejectOpen)
+{
+    <div class="modal-backdrop-custom">
+        <div class="confirm-dialog">
+            <h6 class="fw-bold">Reject Payment</h6>
+            <textarea class="form-control mb-2" placeholder="Reason for rejection..." @bind="_rejectRemarks" rows="3"></textarea>
+            <div class="d-flex gap-2 justify-content-end">
+                <button class="btn btn-sm btn-outline-secondary" @onclick="() => _rejectOpen = false">Cancel</button>
+                <button class="btn btn-sm btn-danger" disabled="@string.IsNullOrWhiteSpace(_rejectRemarks)" @onclick="HandleRejectConfirmedAsync">Reject</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<PaymentApproval>? _approvals;
+    private bool _confirmOpen;
+    private bool _rejectOpen;
+    private int _targetId;
+    private string _rejectRemarks = string.Empty;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync() => _approvals = await PaymentApprovalService.GetPendingApprovalsAsync();
+
+    private void OpenConfirm(int id, bool approve)
+    {
+        _targetId = id;
+        _confirmOpen = true;
+    }
+
+    private void OpenReject(int id)
+    {
+        _targetId = id;
+        _rejectRemarks = string.Empty;
+        _rejectOpen = true;
+    }
+
+    private async Task HandleApproveConfirmedAsync()
+    {
+        _confirmOpen = false;
+        try { await PaymentApprovalService.ApproveAsync(_targetId); await LoadAsync(); }
+        catch (AppException ex) { _errorMessage = ex.Message; }
+        catch (Exception) { _errorMessage = "Something went wrong. Please try again."; }
+    }
+
+    private async Task HandleRejectConfirmedAsync()
+    {
+        _rejectOpen = false;
+        try { await PaymentApprovalService.RejectAsync(_targetId, _rejectRemarks); await LoadAsync(); }
+        catch (AppException ex) { _errorMessage = ex.Message; }
+        catch (Exception) { _errorMessage = "Something went wrong. Please try again."; }
+    }
+}

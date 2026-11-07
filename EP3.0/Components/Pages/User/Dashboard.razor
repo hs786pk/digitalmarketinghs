@@ -1,0 +1,121 @@
+@page "/user"
+@attribute [Authorize(Policy = "RequireActiveUser")]
+@layout Components.Layout.UserLayout
+@using EarnPlatform.Models
+@using EarnPlatform.Models.Dtos
+@using EarnPlatform.Factories.Interfaces
+@using EarnPlatform.Services.Interfaces
+@inject IUserDashboardService DashboardService
+@inject IDashboardCardFactory DashboardCardFactory
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+
+<PageTitle>Dashboard</PageTitle>
+
+@if (_dashboard == null)
+{
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+else
+{
+    <h4 class="fw-bold mb-1">Welcome, @_dashboard.FirstName!</h4>
+    <p class="text-muted mb-3">Here's what's happening with your account today.</p>
+
+    <div class="referral-card mb-3">
+        <div class="small text-white-50 mb-1">Your Referral Link</div>
+        <div class="d-flex align-items-center gap-2">
+            <input class="form-control form-control-sm" readonly value="@_referralLink" />
+            <button class="btn btn-light btn-sm text-nowrap" @onclick="CopyReferralLinkAsync">
+                <i class="bi bi-clipboard"></i> @(_copied ? "Copied!" : "Copy")
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-md-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small">Balance</div>
+                    <div class="fs-5 fw-semibold">PKR @_dashboard.Balance.ToString("N0")</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small">Tasks left today</div>
+                    <div class="fs-5 fw-semibold">@_dashboard.RemainingDailyTasks / @_dashboard.DailyAdLimit</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small">Level</div>
+                    <div class="fs-5 fw-semibold">@_dashboard.AccountLevel</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="text-muted small">Package</div>
+                    <div class="fs-5 fw-semibold">@(_dashboard.PackageName ?? "—")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        @foreach (var card in _cards)
+        {
+            <div class="col-6 col-md-4">
+                <EarnPlatform.Components.Shared.DashboardCard Card="@card" />
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private UserDashboardDto? _dashboard;
+    private List<DashboardCardViewModel> _cards = new();
+    private string _referralLink = string.Empty;
+    private bool _copied;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _dashboard = await DashboardService.GetAsync();
+        if (_dashboard == null)
+        {
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        if (!string.Equals(_dashboard.AccountStatus, nameof(AccountStatus.Active), StringComparison.Ordinal))
+        {
+            if (string.Equals(_dashboard.AccountStatus, nameof(AccountStatus.PendingApproval), StringComparison.Ordinal)
+                && _dashboard.SelectedPackageId == null)
+            {
+                NavigationManager.NavigateTo("/packages");
+                return;
+            }
+
+            NavigationManager.NavigateTo("/user/pending-approval");
+            return;
+        }
+
+        var baseUri = NavigationManager.BaseUri.TrimEnd('/');
+        _referralLink = $"{baseUri}/signup?ref={_dashboard.ReferralCode}";
+        _cards = DashboardCardFactory.CreateUserDashboardCards();
+    }
+
+    private async Task CopyReferralLinkAsync()
+    {
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", _referralLink);
+        _copied = true;
+        StateHasChanged();
+        await Task.Delay(1500);
+        _copied = false;
+        StateHasChanged();
+    }
+}

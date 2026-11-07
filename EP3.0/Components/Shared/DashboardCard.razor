@@ -1,0 +1,20 @@
+﻿@using EarnPlatform.Factories.Interfaces
+
+<a href="@Card.NavigateUrl" class="dashboard-card text-decoration-none">
+    <div class="dashboard-card-icon">
+        <i class="@Card.IconCssClass"></i>
+    </div>
+    <div class="flex-grow-1">
+        <div class="fw-semibold text-dark">@Card.Title</div>
+        <div class="text-muted small">@Card.Description</div>
+    </div>
+    @if (!string.IsNullOrEmpty(Card.BadgeText))
+    {
+        <span class="badge bg-danger rounded-pill">@Card.BadgeText</span>
+    }
+</a>
+
+@code {
+    [Parameter, EditorRequired]
+    public DashboardCardViewModel Card { get; set; } = default!;
+}

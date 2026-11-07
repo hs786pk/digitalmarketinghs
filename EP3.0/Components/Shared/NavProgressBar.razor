@@ -1,0 +1,38 @@
+﻿@implements IDisposable
+@inject NavigationManager NavigationManager
+
+<div class="nav-progress-bar @(_isLoading ? "loading" : "")">
+    <div class="nav-progress-bar-inner"></div>
+</div>
+
+@code {
+    private bool _isLoading;
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += OnLocationChanging;
+    }
+
+    private void OnLocationChanging(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        // LocationChanged fires once the new page has already resolved on the
+        // client side, so this hides the bar right as the new page's content
+        // appears — showing it is handled separately, in OnParametersSet below.
+        _isLoading = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    protected override void OnParametersSet()
+    {
+        // Every time this component's parent (Routes) re-renders because the
+        // route changed, briefly flash the bar so there's visible feedback even
+        // for pages that resolve almost instantly.
+        _isLoading = true;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanging;
+    }
+}

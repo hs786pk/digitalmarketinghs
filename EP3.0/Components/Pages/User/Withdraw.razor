@@ -1,0 +1,143 @@
+@page "/user/withdraw"
+@attribute [Authorize(Policy = "RequireActiveUser")]
+@layout Components.Layout.UserLayout
+@using EarnPlatform.Common
+@using EarnPlatform.Models
+@using EarnPlatform.Services.Interfaces
+@inject ICurrentUserService CurrentUserService
+@inject IWalletService WalletService
+@inject IWithdrawalService WithdrawalService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Withdraw</PageTitle>
+
+@if (_wallet == null)
+{
+    <div class="text-center py-5"><span class="spinner-border text-primary"></span></div>
+}
+else
+{
+    <h4 class="fw-bold mb-1">Withdraw Funds</h4>
+    <p class="text-muted mb-1">Available balance: <strong>PKR @_wallet.Balance.ToString("N2")</strong></p>
+    <p class="text-muted small mb-3">Minimum withdrawal amount: <strong>PKR @BusinessRules.MinimumWithdrawalAmount.ToString("N0")</strong></p>
+
+    @if (_successMessage != null)
+    {
+        <div class="alert alert-success rounded">@_successMessage</div>
+    }
+    @if (_errorMessage != null)
+    {
+        <div class="alert alert-danger rounded">@_errorMessage</div>
+    }
+
+    <div class="card p-3">
+        <EditForm Model="_model" OnValidSubmit="HandleSubmitAsync">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label class="form-label d-block">Payment Method</label>
+                <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" name="method" id="jazzcash" checked="@(_model.PaymentMethod == PaymentMethod.JazzCash)" @onchange="() => _model.PaymentMethod = PaymentMethod.JazzCash" />
+                    <label class="btn btn-outline-primary" for="jazzcash">JazzCash</label>
+
+                    <input type="radio" class="btn-check" name="method" id="easypaisa" checked="@(_model.PaymentMethod == PaymentMethod.Easypaisa)" @onchange="() => _model.PaymentMethod = PaymentMethod.Easypaisa" />
+                    <label class="btn btn-outline-primary" for="easypaisa">Easypaisa</label>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Account Number</label>
+                <InputText @bind-Value="_model.AccountNumber" class="form-control" placeholder="03XXXXXXXXX" />
+                <ValidationMessage For="() => _model.AccountNumber" class="text-danger small" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Amount (PKR)</label>
+                <InputNumber @bind-Value="_model.Amount" class="form-control" />
+                <ValidationMessage For="() => _model.Amount" class="text-danger small" />
+                @if (_model.Amount > 0 && _model.Amount > _wallet.Balance)
+                {
+                    <div class="text-danger small mt-1">Amount exceeds your available balance.</div>
+                }
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2" disabled="@(_isSubmitting || (_model.Amount > 0 && _model.Amount > _wallet.Balance))">
+                @if (_isSubmitting)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                Submit Withdrawal Request
+            </button>
+        </EditForm>
+    </div>
+}
+
+@code {
+    private Models.Wallet? _wallet;
+    private UserAccount? _user;
+    private readonly WithdrawModel _model = new();
+    private string? _errorMessage;
+    private string? _successMessage;
+    private bool _isSubmitting;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _user = await CurrentUserService.GetCurrentUserAccountAsync();
+        if (_user == null)
+        {
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+            return;
+        }
+
+        _wallet = await WalletService.GetOrCreateWalletAsync(_user.Id);
+    }
+
+    private async Task HandleSubmitAsync()
+    {
+        _errorMessage = null;
+        _successMessage = null;
+
+        if (_model.Amount > _wallet!.Balance)
+        {
+            _errorMessage = "Withdrawal amount cannot exceed your available balance.";
+            return;
+        }
+
+        _isSubmitting = true;
+        try
+        {
+            await WithdrawalService.SubmitWithdrawalRequestAsync(
+                _user!.Id, _model.PaymentMethod, _model.AccountNumber, _model.Amount);
+
+            _successMessage = "Your withdrawal request has been submitted and is pending admin approval.";
+            _wallet = await WalletService.GetOrCreateWalletAsync(_user.Id);
+            _model.Amount = 0;
+            _model.AccountNumber = string.Empty;
+        }
+        catch (AppException ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Something went wrong. Please try again.";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    public class WithdrawModel
+    {
+        public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.JazzCash;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Account number is required.")]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^03\d{9}$", ErrorMessage = "Enter a valid mobile wallet number (e.g. 03XXXXXXXXX).")]
+        public string AccountNumber { get; set; } = string.Empty;
+
+        // Keep in sync with BusinessRules.MinimumWithdrawalAmount (server remains authoritative).
+        [System.ComponentModel.DataAnnotations.Range(300, double.MaxValue, ErrorMessage = "Minimum withdrawal amount is PKR 300.")]
+        public decimal Amount { get; set; }
+    }
+}

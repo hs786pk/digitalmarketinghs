@@ -1,0 +1,12 @@
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+TestResults/
+wwwroot/uploads/fbr/*
+!wwwroot/uploads/fbr/.gitkeep
+private/payment-screenshots/*
+!private/payment-screenshots/.gitkeep

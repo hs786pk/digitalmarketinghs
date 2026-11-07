@@ -1,0 +1,12 @@
+﻿<div class="earning-tile">
+    <i class="bi @Icon"></i>
+    <div class="small text-muted">@Title</div>
+    <div class="fw-bold">@(IsCurrency ? $"PKR {Amount:N0}" : Amount.ToString("N0"))</div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public decimal Amount { get; set; }
+    [Parameter, EditorRequired] public string Icon { get; set; } = "bi-cash";
+    [Parameter] public bool IsCurrency { get; set; } = true;
+}

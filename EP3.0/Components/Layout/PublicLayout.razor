@@ -1,0 +1,33 @@
+﻿@inherits LayoutComponentBase
+
+<EarnPlatform.Components.Shared.NavProgressWatcher />
+
+<div class="public-page">
+    <header class="public-header">
+        <div class="container public-header-inner">
+            <a href="/" class="public-brand">
+                <i class="bi bi-cash-coin"></i>
+                <span>Digital-Marketing Group</span>
+            </a>
+
+            <nav class="public-header-actions">
+                <a href="/login" class="btn btn-public-ghost btn-sm">Login</a>
+                <a href="/signup" class="btn btn-public-accent btn-sm">Create Account</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        @Body
+    </main>
+
+    <footer class="public-footer">
+        <div class="container">
+            <p class="mb-1">&copy; @DateTime.UtcNow.Year Digital-Marketing Group. All rights reserved.</p>
+            <p class="small mb-0">
+                Rewards are earned strictly through completed platform tasks and successful referrals —
+                Digital-Marketing Group does not offer investment products or guaranteed returns.
+            </p>
+        </div>
+    </footer>
+</div>
