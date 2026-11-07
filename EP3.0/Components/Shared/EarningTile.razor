@@ -1,7 +1,7 @@
 ﻿<div class="earning-tile">
-    <i class="bi @Icon"></i>
-    <div class="small text-muted">@Title</div>
-    <div class="fw-bold">@(IsCurrency ? $"PKR {Amount:N0}" : Amount.ToString("N0"))</div>
+    <i class="bi @Icon" aria-hidden="true"></i>
+    <span class="label">@Title</span>
+    <span class="value">@(IsCurrency ? $"PKR {Amount:N0}" : Amount.ToString("N0"))</span>
 </div>
 
 @code {
