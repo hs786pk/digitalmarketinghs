@@ -2,6 +2,28 @@
 
 <EarnPlatform.Components.Shared.NavProgressWatcher />
 
-<div class="auth-page d-flex align-items-center justify-content-center">
-    @Body
+<div class="auth-page">
+    <aside class="auth-rail">
+        <a href="/" class="auth-rail-brand" aria-label="Digital-Marketing Group home">
+            <span class="brand-mark" aria-hidden="true">DM</span>
+            <span>Digital-Marketing Group</span>
+        </a>
+
+        <div>
+            <h2 class="auth-rail-title">Every task logged. <span>Every rupee traceable.</span></h2>
+            <ul class="auth-rail-points">
+                <li><i class="bi bi-patch-check" aria-hidden="true"></i> Rewards are credited only for verified tasks and successful referrals.</li>
+                <li><i class="bi bi-journal-text" aria-hidden="true"></i> Every credit and withdrawal appears in your transaction history.</li>
+                <li><i class="bi bi-shield-check" aria-hidden="true"></i> Withdrawals are reviewed by our team before payout.</li>
+            </ul>
+        </div>
+
+        <p class="auth-rail-fine">
+            Digital-Marketing Group does not offer investment products or guaranteed returns.
+        </p>
+    </aside>
+
+    <main class="auth-stage">
+        @Body
+    </main>
 </div>

@@ -88,3 +88,46 @@ document.addEventListener('submit', function () {
 window.addEventListener('load', function () {
     window.earnPlatform.hideNavProgressBar();
 });
+
+// ---------- Scroll reveals ----------
+// Progressive enhancement: the 'js' class lets CSS hide .reveal blocks until they
+// scroll into view. Without JS (or if this observer never fires) the CSS failsafe
+// in site.css shows the content anyway, so nothing can stay invisible.
+document.documentElement.classList.add('js');
+
+(function () {
+    function observeReveals() {
+        const items = document.querySelectorAll('.reveal:not(.is-in)');
+        if (!items.length) return;
+
+        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduce || !('IntersectionObserver' in window)) {
+            items.forEach(function (el) { el.classList.add('is-in'); });
+            return;
+        }
+
+        const io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-in');
+                    io.unobserve(entry.target);
+                }
+            });
+        }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+
+        items.forEach(function (el) { io.observe(el); });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', observeReveals);
+    } else {
+        observeReveals();
+    }
+
+    // Blazor enhanced navigation swaps page content without a full load.
+    if (window.Blazor && typeof window.Blazor.addEventListener === 'function') {
+        window.Blazor.addEventListener('enhancedload', observeReveals);
+    } else {
+        document.addEventListener('enhancedload', observeReveals);
+    }
+})();

@@ -3,16 +3,25 @@
 <EarnPlatform.Components.Shared.NavProgressWatcher />
 
 <div class="public-page">
-    <header class="public-header">
-        <div class="container public-header-inner">
-            <a href="/" class="public-brand" aria-label="Digital-Marketing Group home">
-                <i class="bi bi-cash-coin" aria-hidden="true"></i>
-                <span>Digital-Marketing Group</span>
+    <a href="#main-content" class="skip-link">Skip to content</a>
+
+    <header class="hm-header">
+        <div class="hm-wrap hm-header-inner">
+            <a href="/" class="hm-brand" aria-label="Digital-Marketing Group home">
+                <span class="brand-mark" aria-hidden="true">DM</span>
+                <span class="hm-brand-name">Digital-Marketing Group</span>
             </a>
 
-            <nav class="public-header-actions" aria-label="Account">
-                <a href="/login" class="btn btn-public-ghost btn-sm">Login</a>
-                <a href="/signup" class="btn btn-public-accent btn-sm">Create Account</a>
+            <nav class="hm-nav" aria-label="Page sections">
+                <a href="#how" class="hm-nav-link">How it works</a>
+                <a href="#rewards" class="hm-nav-link">Rewards</a>
+                <a href="#wallet" class="hm-nav-link">Wallet</a>
+                <a href="#faq" class="hm-nav-link">FAQ</a>
+            </nav>
+
+            <nav class="hm-header-actions" aria-label="Account">
+                <a href="/login" class="btn btn-outline-ink btn-sm">Login</a>
+                <a href="/signup" class="btn btn-accent btn-sm">Create Account</a>
             </nav>
         </div>
     </header>
@@ -21,13 +30,26 @@
         @Body
     </main>
 
-    <footer class="public-footer">
-        <div class="container">
-            <p class="mb-2">&copy; @DateTime.UtcNow.Year Digital-Marketing Group. All rights reserved.</p>
-            <p class="small mb-0">
-                Rewards are earned strictly through completed platform tasks and successful referrals.
-                Digital-Marketing Group does not offer investment products or guaranteed returns.
-            </p>
+    <footer class="hm-footer">
+        <div class="hm-wrap">
+            <div class="hm-footer-grid">
+                <div>
+                    <a href="/" class="hm-brand" aria-label="Digital-Marketing Group home">
+                        <span class="brand-mark" aria-hidden="true">DM</span>
+                        <span class="hm-brand-name">Digital-Marketing Group</span>
+                    </a>
+                    <p class="hm-footer-fine mt-3">
+                        Rewards are earned strictly through completed platform tasks and successful referrals.
+                        Digital-Marketing Group does not offer investment products or guaranteed returns.
+                    </p>
+                </div>
+                <nav class="hm-footer-links align-content-start" aria-label="Footer">
+                    <a href="/login">Login</a>
+                    <a href="/signup">Create Account</a>
+                    <a href="#faq">FAQ</a>
+                </nav>
+            </div>
+            <p class="hm-footer-bottom mb-0">&copy; @DateTime.UtcNow.Year Digital-Marketing Group. All rights reserved.</p>
         </div>
     </footer>
 </div>
