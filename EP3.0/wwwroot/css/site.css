@@ -2316,12 +2316,54 @@ a.bottom-nav-item.active {
 .hm-level:nth-child(5) .hm-level-label {
     color: var(--marigold);
 }
+/* benefit line under each level */
+.hm-level-benefit {
+    display: block;
+    margin-top: 0.55rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: 0.01em;
+    color: var(--ink-2);
+}
+
+.hm-level:nth-child(5) .hm-level-benefit {
+    color: rgba(244, 241, 233, 0.85);
+}
+
+/* give the taller steps a little more breathing room for the extra line */
+.hm-level {
+    padding-bottom: 0.9rem;
+}
+
+@media (max-width: 575.98px) {
+    .hm-levels {
+        gap: 0.35rem;
+    }
+
+    .hm-level-benefit {
+        font-size: 0.6rem;
+    }
+}
 
 /* ---- tasks: three columns divided by rules ---- */
 .hm-cols {
     display: grid;
     grid-template-columns: 1fr;
     border-top: 2px solid var(--ink);
+}
+/* Task system – slightly quieter treatment */
+.hm-cols {
+    margin-top: 2.25rem;
+}
+
+.hm-col h3 {
+    font-size: 1.2rem;
+}
+
+.hm-col p {
+    max-width: 28ch;
+    font-size: 0.92rem;
 }
 
 .hm-col {
@@ -2355,7 +2397,21 @@ a.bottom-nav-item.active {
             border-right: 0;
         }
 }
+.hm-level-top {
+    position: relative;
+}
 
+    .hm-level-top::before {
+        content: "";
+        position: absolute;
+        top: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 1.1rem;
+        height: 4px;
+        background: var(--marigold);
+        border-radius: 2px;
+    }
 /* payment method labels */
 .hm-methods {
     display: flex;
